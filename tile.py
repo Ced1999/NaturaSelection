@@ -4,7 +4,8 @@ class TileType(Enum):
     GRASS = 1
     DIRT = 2
     WATER = 3
-
+    APPLE = 4
+    
 class Tile:
     def __init__(self, tile_type, nutrients=50, regrow_ticks=100):
         self.type = tile_type

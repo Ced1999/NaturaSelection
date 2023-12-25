@@ -68,7 +68,7 @@ def run_simulation():
 
         for animal in animals:
             if animal.alive:
-                animal.random_move(world.width, world.height)
+                animal.move(world)
                 current_tile = world.get_tile(animal.x, animal.y)
                 animal.eat(current_tile)
         world.update()

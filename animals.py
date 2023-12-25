@@ -1,5 +1,6 @@
 from tile import *
 import random
+from world import World
 class Animal:
     def __init__(self, max_energy, x, y):
         self.max_energy = max_energy
@@ -7,10 +8,11 @@ class Animal:
         self.x = x  # X-coordinate
         self.y = y  # Y-coordinate
         self.alive = True
-    def random_move(self, world_width, world_height):
+        self.apples_collected = 0
+    def move(self, world):
         """ Move the animal randomly within the bounds of the world """
-        self.x = min(max(0, self.x + random.randint(-1, 1)), world_width - 1)
-        self.y = min(max(0, self.y + random.randint(-1, 1)), world_height - 1)
+        self.x = min(max(0, self.x + random.randint(-1, 1)), world.width - 1)
+        self.y = min(max(0, self.y + random.randint(-1, 1)), world.height - 1)
         self.energy -= 10  # Decrease energy for moving
         self.check_energy()
     def set_position(self, x, y):
@@ -19,10 +21,6 @@ class Animal:
 
     def get_position(self):
         return self.x, self.y
-
-    def move(self):
-        self.energy -= 10
-        self.check_energy()
 
     def eat(self, tile):
         raise NotImplementedError("This method should be overridden in subclasses")
