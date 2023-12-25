@@ -86,6 +86,6 @@ def run_simulation():
         # Render the world and animals
         render(screen, world, animals)
 
-        pygame.time.delay(50)
+        pygame.time.delay(20)
 
     pygame.quit()
