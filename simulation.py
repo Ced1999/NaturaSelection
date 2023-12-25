@@ -1,6 +1,6 @@
 import sys
 from world import World
-from animals import Animal,Herbivore,Carnivore
+from animals import Animal,Herbivore
 import pygame
 from tile import *
 import random
@@ -8,7 +8,7 @@ import random
 # Constants for rendering
 TILE_SIZE = 10
 HERBIVORE_COLOR = (0, 255, 0)  # Green
-CARNIVORE_COLOR = (255, 0, 0)  # Red
+APPLE_COLOR = (255, 0, 0)  # Red
 GRASS_COLOR = (0, 128, 0)      # Dark Green
 DIRT_COLOR = (101, 67, 33)     # Brown
 WATER_COLOR = (0, 0, 255)      # Blue
@@ -17,20 +17,27 @@ def render(screen, world, animals):
     for y in range(world.height):
         for x in range(world.width):
             tile = world.get_tile(x, y)
+
+            # Draw the base tile (grass, dirt, or water)
             if tile.type == TileType.GRASS:
-                color = GRASS_COLOR
+                base_color = GRASS_COLOR
             elif tile.type == TileType.DIRT:
-                color = DIRT_COLOR
+                base_color = DIRT_COLOR
             elif tile.type == TileType.WATER:
-                color = WATER_COLOR
+                base_color = WATER_COLOR
+            else:
+                base_color = GRASS_COLOR  # Default to grass for other types
+            pygame.draw.rect(screen, base_color, (x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE))
 
-            pygame.draw.rect(screen, color, (x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE))
-
+            # If the tile has an apple, draw a red circle on top
+            if tile.type == TileType.APPLE:
+                apple_x = x * TILE_SIZE + TILE_SIZE // 2
+                apple_y = y * TILE_SIZE + TILE_SIZE // 2
+                pygame.draw.circle(screen, APPLE_COLOR, (apple_x, apple_y), TILE_SIZE // 2)
     for animal in animals:
         if animal.alive:
             # Determine the color based on the type of animal
-            color = HERBIVORE_COLOR if isinstance(animal, Herbivore) else CARNIVORE_COLOR
-            
+            color = HERBIVORE_COLOR 
             # Calculate the position for drawing the animal
             animal_x = animal.x * TILE_SIZE + TILE_SIZE // 2
             animal_y = animal.y * TILE_SIZE + TILE_SIZE // 2
@@ -38,11 +45,6 @@ def render(screen, world, animals):
             # Draw the animal
             pygame.draw.circle(screen, color, (animal_x, animal_y), TILE_SIZE // 2)
 
-            # Draw the energy bar above the animal
-            energy_ratio = animal.energy / animal.max_energy
-            energy_bar_length = TILE_SIZE * energy_ratio
-            energy_bar_color = (255 - int(255 * energy_ratio), int(255 * energy_ratio), 0)  # From red to green
-            pygame.draw.rect(screen, energy_bar_color, (animal_x - TILE_SIZE // 2, animal_y - TILE_SIZE // 2 - 5, energy_bar_length, 2))
 
     pygame.display.flip()
 
@@ -55,8 +57,8 @@ def run_simulation():
 
 
     # Initialize the world and animals
-    world = World(50, 50)  # Example world size
-    animals = [Herbivore(100, random.randint(0,world.height), random.randint(0,world.width)) for _ in range(30)]
+    world = World(50, 50,20)  # Example world size
+    animals = [Herbivore(random.randint(0,world.height), random.randint(0,world.width)) for _ in range(60)]
     screen = pygame.display.set_mode((world.width * TILE_SIZE, world.height * TILE_SIZE))
     pygame.display.set_caption("Ecosystem Simulation")
     # Main simulation loop
@@ -68,14 +70,22 @@ def run_simulation():
 
         for animal in animals:
             if animal.alive:
-                animal.random_move(world.width, world.height)
+                animal.move(world)
                 current_tile = world.get_tile(animal.x, animal.y)
-                animal.eat(current_tile)
-        world.update()
+                if animal.eat(current_tile):
+                    world.apple_count -= 1
+        if not world.apple_count:
+            #The Day is over
+            for animal in animals:
+                if animal.apples_collected == 0:
+                    animal.alive = False
+                    animal.on_death()
+            world.apple_count = 20
+            world.place_apples(20)
 
         # Render the world and animals
         render(screen, world, animals)
 
-        pygame.time.delay(200)
+        pygame.time.delay(50)
 
     pygame.quit()
