@@ -20,4 +20,15 @@ class World:
                 if self.grid[x][y].type == TileType.GRASS:
                     self.grid[x][y] = Tile(TileType.APPLE)
                     break
-    # Additional methods for world behavior can be added here
+    def clear_and_place_apples(self, apple_count):
+        # Clear existing apples
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.grid[y][x].type == TileType.APPLE:
+                    self.grid[y][x] = Tile(TileType.GRASS)
+
+        # Reset the apple count
+        self.apple_count = apple_count
+
+        # Place new apples
+        self.place_apples(apple_count)

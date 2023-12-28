@@ -12,8 +12,8 @@ APPLE_COLOR = (255, 0, 0)  # Red
 GRASS_COLOR = (0, 128, 0)      # Dark Green
 DIRT_COLOR = (101, 67, 33)     # Brown
 WATER_COLOR = (0, 0, 255)      # Blue
-
-def render(screen, world, animals):
+TICKS_PER_DAY = 60
+def render(screen, world, animals,show_sight_range):
     for y in range(world.height):
         for x in range(world.width):
             tile = world.get_tile(x, y)
@@ -37,6 +37,8 @@ def render(screen, world, animals):
     for animal in animals:
         if animal.alive:
             # Determine the color based on the type of animal
+
+
             color = HERBIVORE_COLOR 
             # Calculate the position for drawing the animal
             animal_x = animal.x * TILE_SIZE + TILE_SIZE // 2
@@ -44,7 +46,9 @@ def render(screen, world, animals):
 
             # Draw the animal
             pygame.draw.circle(screen, color, (animal_x, animal_y), TILE_SIZE // 2)
-
+            if show_sight_range:
+                # Draw the sight range
+                pygame.draw.circle(screen, (0, 0, 255, 50), (animal_x, animal_y), animal.sight * TILE_SIZE, 1)
 
     pygame.display.flip()
 
@@ -52,21 +56,24 @@ def render(screen, world, animals):
 def run_simulation():
     # Initialize Pygame
     pygame.init()
-
+    show_sight_range = False
     # Set up the Pygame screen
-
-
-    # Initialize the world and animals
-    world = World(50, 50,20)  # Example world size
-    animals = [Herbivore(random.randint(0,world.height), random.randint(0,world.width)) for _ in range(60)]
+    world = World(50, 50, 20)  # Example world size
+    animals = [Herbivore(random.randint(0, world.height - 1), random.randint(0, world.width - 1)) for _ in range(50)]
     screen = pygame.display.set_mode((world.width * TILE_SIZE, world.height * TILE_SIZE))
     pygame.display.set_caption("Ecosystem Simulation")
+
     # Main simulation loop
     running = True
+    tick_counter = 0  # Initialize tick counter
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_s:
+                    show_sight_range = not show_sight_range
 
         for animal in animals:
             if animal.alive:
@@ -74,18 +81,30 @@ def run_simulation():
                 current_tile = world.get_tile(animal.x, animal.y)
                 if animal.eat(current_tile):
                     world.apple_count -= 1
-        if not world.apple_count:
-            #The Day is over
+
+        # Increase tick counter
+        tick_counter += 1
+
+        # Check if a new day should start
+        if not world.apple_count or tick_counter >= TICKS_PER_DAY:
+            tick_counter = 0  # Reset tick counter for the new day
+            new_animals = []
             for animal in animals:
                 if animal.apples_collected == 0:
                     animal.alive = False
                     animal.on_death()
+                if animal.apples_collected >= 2 and animal.alive:
+                    animal.reset_energy()
+                    new_animal = animal.reproduce()
+                    new_animals.append(new_animal)
+            animals.extend(new_animals)
             world.apple_count = 20
-            world.place_apples(20)
+            world.clear_and_place_apples(20)
 
         # Render the world and animals
-        render(screen, world, animals)
+        render(screen, world, animals,show_sight_range)
 
-        pygame.time.delay(20)
+        pygame.time.delay(100)
 
     pygame.quit()
+
