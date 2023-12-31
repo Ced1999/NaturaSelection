@@ -4,6 +4,7 @@ from animals import Animal,Herbivore
 import pygame
 from tile import *
 import random
+import statistics
 
 # Constants for rendering
 TILE_SIZE = 10
@@ -53,13 +54,13 @@ def render(screen, world, animals,show_sight_range):
     pygame.display.flip()
 
 
-def run_simulation():
+def run_simulation(speed=2,sight=15,animal_count=50,apple_count=20):
     # Initialize Pygame
     pygame.init()
     show_sight_range = False
     # Set up the Pygame screen
-    world = World(50, 50, 20)  # Example world size
-    animals = [Herbivore(random.randint(0, world.height - 1), random.randint(0, world.width - 1)) for _ in range(50)]
+    world = World(50, 50, apple_count)  # Example world size
+    animals = [Herbivore(random.randint(0, world.height - 1), random.randint(0, world.width - 1),speed,sight) for _ in range(animal_count)]
     screen = pygame.display.set_mode((world.width * TILE_SIZE, world.height * TILE_SIZE))
     pygame.display.set_caption("Ecosystem Simulation")
 
@@ -93,18 +94,27 @@ def run_simulation():
                 if animal.apples_collected == 0:
                     animal.alive = False
                     animal.on_death()
+                if animal.apples_collected == 1:
+                    animal.apples_collected = 0
                 if animal.apples_collected >= 2 and animal.alive:
+                    animal.apples_collected = 0
                     animal.reset_energy()
                     new_animal = animal.reproduce()
                     new_animals.append(new_animal)
             animals.extend(new_animals)
-            world.apple_count = 20
-            world.clear_and_place_apples(20)
-
+            world.apple_count = apple_count
+            world.clear_and_place_apples(apple_count)
+            speeds = [animal.speed for animal in animals if animal.alive]
+            sights = [animal.sight for animal in animals if animal.alive]
+            if speeds and sights:
+                median_speed = statistics.mean(speeds)
+                median_sight = statistics.mean(sights)
+                
+                print(f"median speed: {median_speed}, median sight: {median_sight}, number of animals {len(speeds)}")
         # Render the world and animals
         render(screen, world, animals,show_sight_range)
 
-        pygame.time.delay(100)
+        pygame.time.delay(1)
 
     pygame.quit()
 

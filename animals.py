@@ -3,7 +3,7 @@ import random
 from world import World
 
 class Animal:
-    def __init__(self, x, y, speed=1.0, sight=10):
+    def __init__(self, x, y, speed=2, sight=20):
         self.apples_collected = 0
         self.x = x  # X-coordinate
         self.y = y  # Y-coordinate
@@ -26,7 +26,7 @@ class Animal:
             self.move_towards_food(world)
 
         # Calculate and deduct energy cost
-        self.energy -= (self.speed ** 2 + self.sight)
+        self.energy -= ((1+ self.speed) ** 2) + self.sight / 4
         if self.energy <= 0:
             self.alive = False
             self.on_death()
@@ -106,8 +106,8 @@ class Animal:
         new_sight = max(1, self.sight + random.randint(-sight_mutation_range, sight_mutation_range))
 
         # Ensure new attributes are within sensible bounds
-        new_speed = max(0.1, min(new_speed, 5))  # Assuming speed should be between 0.1 and 5
-        new_sight = max(1, min(new_sight, 20))   # Assuming sight should be between 1 and 20
+        new_speed = max(1, min(new_speed, 5))  # Assuming speed should be between 0.1 and 5
+        new_sight = max(10, min(new_sight, 25))   # Assuming sight should be between 1 and 20
 
         # Create a new animal at the same location with mutated attributes
         new_animal = type(self)(self.x, self.y, new_speed, new_sight)
