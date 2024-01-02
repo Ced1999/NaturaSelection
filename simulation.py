@@ -54,7 +54,7 @@ def render(screen, world, animals,show_sight_range):
     pygame.display.flip()
 
 
-def run_simulation(speed=2,sight=15,animal_count=50,apple_count=20):
+def run_simulation(speed=2,sight=15,animal_count=50,apple_count=30):
     # Initialize Pygame
     pygame.init()
     show_sight_range = False

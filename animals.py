@@ -26,7 +26,7 @@ class Animal:
             self.move_towards_food(world)
 
         # Calculate and deduct energy cost
-        self.energy -= ((1+ self.speed) ** 2) + self.sight / 4
+        self.energy -= ((self.speed) ** 2) + self.sight / 5
         if self.energy <= 0:
             self.alive = False
             self.on_death()
